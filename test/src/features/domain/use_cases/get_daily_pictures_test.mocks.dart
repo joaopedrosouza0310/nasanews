@@ -6,8 +6,6 @@
 import 'dart:async' as _i3;
 
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:nasanews/src/features/daily_picture/data/data_sources/local/local_daily_pictures_data_source.dart'
-    as _i4;
 import 'package:nasanews/src/features/daily_picture/domain/domain.dart' as _i2;
 
 // ignore_for_file: type=lint
@@ -63,14 +61,14 @@ class MockDailyPicturesRepository extends _i1.Mock
               ({List<_i2.DailyPicture>? dailyPictures, String? errorMessage})>);
 
   @override
-  _i3.Future<_i4.LocalRequestResult> saveDailyPictures(
+  _i3.Future<List<_i2.DailyPicture>> saveDailyPictures(
           List<_i2.DailyPicture>? dailyPictures) =>
       (super.noSuchMethod(
         Invocation.method(
           #saveDailyPictures,
           [dailyPictures],
         ),
-        returnValue: _i3.Future<_i4.LocalRequestResult>.value(
-            _i4.LocalRequestResult.errorRetrieving),
-      ) as _i3.Future<_i4.LocalRequestResult>);
+        returnValue:
+            _i3.Future<List<_i2.DailyPicture>>.value(<_i2.DailyPicture>[]),
+      ) as _i3.Future<List<_i2.DailyPicture>>);
 }

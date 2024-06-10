@@ -18,7 +18,7 @@ abstract interface class LocalDailyPicturesDataSource {
         LocalRequestResult resultType
       })> getDailyPictures();
 
-  Future<LocalRequestResult> saveDailyPictures(
+  Future<List<DailyPictureModel>?> saveDailyPictures(
       List<DailyPictureModel> dailyPictures);
 
   Future<LocalRequestResult> saveSinglePicture(DailyPictureModel picture);
@@ -111,7 +111,7 @@ class LocalDailyPicturesDataSourceImpl implements LocalDailyPicturesDataSource {
   }
 
   @override
-  Future<LocalRequestResult> saveDailyPictures(
+  Future<List<DailyPictureModel>?> saveDailyPictures(
       List<DailyPictureModel> dailyPictures) async {
     try {
       for (var picture in dailyPictures) {
@@ -120,11 +120,15 @@ class LocalDailyPicturesDataSourceImpl implements LocalDailyPicturesDataSource {
         saveSinglePicture(picture);
       }
 
-      return LocalRequestResult.success;
+      final result = await getDailyPictures();
+
+      if (result.dailyPictures != null) return result.dailyPictures;
+
+      return [];
     } catch (e) {
       // Unable to save data
       _logger.error('Unable to save data: ${e.toString()}');
-      return LocalRequestResult.errorSaving;
+      return [];
     }
   }
 }

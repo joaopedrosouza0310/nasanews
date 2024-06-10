@@ -1,159 +1,157 @@
+import 'dart:io';
+
+import 'package:dio/dio.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
+import 'package:nasanews/src/core/core.dart';
 import 'package:nasanews/src/features/daily_picture/data/data.dart';
-import 'package:nasanews/src/features/daily_picture/domain/domain.dart';
 
 import 'daily_pictures_repository_test.mocks.dart';
 
-@GenerateMocks([RemoteDailyPicturesDataSource, LocalDailyPicturesDataSource])
+@GenerateMocks([HttpClient, DefaultLogger])
 void main() {
-  late MockRemoteDailyPicturesDataSource mockRemoteDataSource;
-  late MockLocalDailyPicturesDataSource mockLocalDataSource;
-  late DailyPicturesRepositoryImpl repository;
+  late MockHttpClient mockHttpClient;
+  late MockDefaultLogger mockLogger;
+  late RemoteDailyPicturesDataSourceImpl dataSource;
 
   setUp(() {
-    mockRemoteDataSource = MockRemoteDailyPicturesDataSource();
-    mockLocalDataSource = MockLocalDailyPicturesDataSource();
-    repository =
-        DailyPicturesRepositoryImpl(mockRemoteDataSource, mockLocalDataSource);
+    mockHttpClient = MockHttpClient();
+    mockLogger = MockDefaultLogger();
+    dataSource = RemoteDailyPicturesDataSourceImpl(mockHttpClient, mockLogger);
   });
 
   group('getDailyPictures', () {
-    test(
-        'should return dailyPictures when the remote data source is successful',
-        () async {
-      // Arrange
-      final testData = [
-        const DailyPictureModel(
-          copyright: 'Copyright 1',
-          date: '2022-01-01',
-          explanation: 'Explanation 1',
-          hdurl: 'hdurl1',
-          mediaType: 'image',
-          serviceVersion: 'v1',
-          title: 'Picture 1',
-          imageUrl: 'url1',
-        ),
-      ];
-      when(mockRemoteDataSource.getDailyPictures())
-          .thenAnswer((_) async => (dailyPictures: testData, errorType: null));
+    const apiUrl = 'https://api.nasa.gov/planetary/apod';
+    const apiKey = 'DEMO_KEY';
 
-      // Act
-      final result = await repository.getDailyPictures();
-
-      // Assert
-      final expectedEntities = testData.map((e) => e.toEntity()).toList();
-      expect(result.dailyPictures?.length, expectedEntities.length);
-      expect(result.errorMessage, isNull);
+    setUp(() {
+      dotenv.testLoad(fileInput: '''
+      API_URL=$apiUrl
+      API_KEY=$apiKey
+      ''');
     });
 
-    test('should return error message when the remote data source fails',
+    test(
+        'should return list of daily pictures when the call to API is successful',
         () async {
       // Arrange
-      when(mockRemoteDataSource.getDailyPictures()).thenAnswer((_) async =>
-          (dailyPictures: null, errorType: RemoteRequestResult.networkError));
+      final responseData = [
+        {
+          'title': 'Title 1',
+          'explanation': 'Explanation 1',
+          'url': 'url1',
+          'media_type': 'image',
+          'date': '2022-01-01',
+          'copyright': 'Copyright 1',
+          'hdurl': 'hdurl1',
+          'service_version': 'v1',
+          'imagePath': 'path1',
+        },
+      ];
+
+      when(mockHttpClient.get(any)).thenAnswer(
+        (_) async => Response(
+          data: responseData,
+          statusCode: 200,
+          requestOptions: RequestOptions(path: apiUrl),
+        ),
+      );
 
       // Act
-      final result = await repository.getDailyPictures();
+      final result = await dataSource.getDailyPictures();
+
+      // Assert
+      expect(result.dailyPictures, isNotNull);
+      expect(result.dailyPictures?.length, responseData.length);
+      expect(result.errorType, isNull);
+    });
+
+    test('should return error when API URL or API key is not defined',
+        () async {
+      // Arrange
+      dotenv.testLoad(fileInput: '''
+      API_URL=
+      API_KEY=
+      ''');
+
+      // Act
+      final result = await dataSource.getDailyPictures();
 
       // Assert
       expect(result.dailyPictures, isNull);
-      expect(result.errorMessage, 'Erro de rede');
-    });
-  });
-
-  group('getLocalDailyPictures', () {
-    test('should return dailyPictures when the local data source is successful',
-        () async {
-      // Arrange
-      final testData = [
-        const DailyPictureModel(
-          copyright: 'Copyright 1',
-          date: '2022-01-01',
-          explanation: 'Explanation 1',
-          hdurl: 'hdurl1',
-          mediaType: 'image',
-          serviceVersion: 'v1',
-          title: 'Picture 1',
-          imageUrl: 'url1',
-        ),
-      ];
-      when(mockLocalDataSource.getDailyPictures()).thenAnswer((_) async =>
-          (dailyPictures: testData, resultType: LocalRequestResult.success));
-
-      // Act
-      final result = await repository.getLocalDailyPictures();
-
-      // Assert
-      final expectedEntities = testData.map((e) => e.toEntity()).toList();
-      expect(result.dailyPictures?.length, expectedEntities.length);
-      expect(result.errorMessage, isNull);
+      expect(result.errorType, RemoteRequestResult.envDataNotDefined);
     });
 
-    test('should return error message when the local data source fails',
-        () async {
+    test('should return network error on SocketException', () async {
       // Arrange
-      when(mockLocalDataSource.getDailyPictures()).thenAnswer((_) async => (
-            dailyPictures: null,
-            resultType: LocalRequestResult.errorRetrieving
-          ));
+      when(mockHttpClient.get(any))
+          .thenThrow(const SocketException('Network error'));
 
       // Act
-      final result = await repository.getLocalDailyPictures();
+      final result = await dataSource.getDailyPictures();
 
       // Assert
       expect(result.dailyPictures, isNull);
-      expect(result.errorMessage, 'Erro ao recuperar os dados');
-    });
-  });
-
-  group('saveDailyPictures', () {
-    test(
-        'should return success when the local data source saves data successfully',
-        () async {
-      // Arrange
-      final testData = [
-        DailyPicture(
-          title: 'Picture 1',
-          explanation: 'Explanation 1',
-          imageUrl: 'url1',
-          type: MediaType.image,
-          date: DateTime.parse('2022-01-01'),
-          copyright: 'Copyright 1',
-        ),
-      ];
-      when(mockLocalDataSource.saveDailyPictures(any))
-          .thenAnswer((_) async => LocalRequestResult.success);
-
-      // Act
-      final result = await repository.saveDailyPictures(testData);
-
-      // Assert
-      expect(result, LocalRequestResult.success);
+      expect(result.errorType, RemoteRequestResult.networkError);
+      verify(mockLogger.error(any)).called(1);
     });
 
-    test('should return error when the local data source fails to save data',
-        () async {
+    test('should return http error on DioException', () async {
       // Arrange
-      final testData = [
-        DailyPicture(
-          title: 'Picture 1',
-          explanation: 'Explanation 1',
-          imageUrl: 'url1',
-          type: MediaType.image,
-          date: DateTime.parse('2022-01-01'),
-          copyright: 'Copyright 1',
-        ),
-      ];
-      when(mockLocalDataSource.saveDailyPictures(any))
-          .thenAnswer((_) async => LocalRequestResult.errorSaving);
+      when(mockHttpClient.get(any)).thenThrow(DioException(
+        requestOptions: RequestOptions(path: apiUrl),
+        type: DioExceptionType.badResponse,
+      ));
 
       // Act
-      final result = await repository.saveDailyPictures(testData);
+      final result = await dataSource.getDailyPictures();
 
       // Assert
-      expect(result, LocalRequestResult.errorSaving);
+      expect(result.dailyPictures, isNull);
+      expect(result.errorType, RemoteRequestResult.httpError);
+      verify(mockLogger.error(any)).called(1);
+    });
+
+    test('should return json format error on FormatException', () async {
+      // Arrange
+      when(mockHttpClient.get(any))
+          .thenThrow(const FormatException('JSON format error'));
+
+      // Act
+      final result = await dataSource.getDailyPictures();
+
+      // Assert
+      expect(result.dailyPictures, isNull);
+      expect(result.errorType, RemoteRequestResult.jsonFormatError);
+      verify(mockLogger.error(any)).called(1);
+    });
+
+    test('should return type error on TypeError', () async {
+      // Arrange
+      when(mockHttpClient.get(any)).thenThrow(TypeError());
+
+      // Act
+      final result = await dataSource.getDailyPictures();
+
+      // Assert
+      expect(result.dailyPictures, isNull);
+      expect(result.errorType, RemoteRequestResult.typeError);
+      verify(mockLogger.error(any)).called(1);
+    });
+
+    test('should return unableToRetrieveData on any other exception', () async {
+      // Arrange
+      when(mockHttpClient.get(any)).thenThrow(Exception('Unknown error'));
+
+      // Act
+      final result = await dataSource.getDailyPictures();
+
+      // Assert
+      expect(result.dailyPictures, isNull);
+      expect(result.errorType, RemoteRequestResult.unableToRetrieveData);
+      verify(mockLogger.error(any)).called(1);
     });
   });
 }

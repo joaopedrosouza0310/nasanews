@@ -49,10 +49,13 @@ class DailyPicturesRepositoryImpl implements DailyPicturesRepository {
   }
 
   @override
-  Future<LocalRequestResult> saveDailyPictures(
-      List<DailyPicture> dailyPictures) {
-    return _localDataSource
+  Future<List<DailyPicture>> saveDailyPictures(
+      List<DailyPicture> dailyPictures) async {
+    final result = await _localDataSource
         .saveDailyPictures(dailyPictures.map((e) => e.toModel()).toList());
+
+    return List<DailyPicture>.from(
+        (result as List<DailyPictureModel>).map((e) => e.toEntity()).toList());
   }
 
   String _handleLocalMessage(LocalRequestResult result) {

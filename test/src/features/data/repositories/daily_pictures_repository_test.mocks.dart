@@ -3,10 +3,13 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i3;
+import 'dart:async' as _i5;
 
+import 'package:dio/dio.dart' as _i2;
+import 'package:logger/logger.dart' as _i3;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:nasanews/src/features/daily_picture/data/data.dart' as _i2;
+import 'package:nasanews/src/core/http/http_client.dart' as _i4;
+import 'package:nasanews/src/core/utils/logger/default_logger.dart' as _i6;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -21,87 +24,164 @@ import 'package:nasanews/src/features/daily_picture/data/data.dart' as _i2;
 // ignore_for_file: camel_case_types
 // ignore_for_file: subtype_of_sealed_class
 
-/// A class which mocks [RemoteDailyPicturesDataSource].
-///
-/// See the documentation for Mockito's code generation for more information.
-class MockRemoteDailyPicturesDataSource extends _i1.Mock
-    implements _i2.RemoteDailyPicturesDataSource {
-  MockRemoteDailyPicturesDataSource() {
-    _i1.throwOnMissingStub(this);
-  }
-
-  @override
-  _i3.Future<
-          ({List<_i2.DailyPictureModel>? dailyPictures, _i2.RemoteRequestResult? errorType})>
-      getDailyPictures() => (super.noSuchMethod(
-            Invocation.method(
-              #getDailyPictures,
-              [],
-            ),
-            returnValue: _i3.Future<
-                ({
-                  List<_i2.DailyPictureModel>? dailyPictures,
-                  _i2.RemoteRequestResult? errorType
-                })>.value((dailyPictures: null, errorType: null)),
-          ) as _i3.Future<
-              ({
-                List<_i2.DailyPictureModel>? dailyPictures,
-                _i2.RemoteRequestResult? errorType
-              })>);
+class _FakeResponse_0<T> extends _i1.SmartFake implements _i2.Response<T> {
+  _FakeResponse_0(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
 }
 
-/// A class which mocks [LocalDailyPicturesDataSource].
+class _FakeLogger_1 extends _i1.SmartFake implements _i3.Logger {
+  _FakeLogger_1(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+/// A class which mocks [HttpClient].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockLocalDailyPicturesDataSource extends _i1.Mock
-    implements _i2.LocalDailyPicturesDataSource {
-  MockLocalDailyPicturesDataSource() {
+class MockHttpClient extends _i1.Mock implements _i4.HttpClient {
+  MockHttpClient() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i3.Future<
-          ({List<_i2.DailyPictureModel>? dailyPictures, _i2.LocalRequestResult resultType})>
-      getDailyPictures() => (super.noSuchMethod(
-            Invocation.method(
-              #getDailyPictures,
-              [],
-            ),
-            returnValue: _i3.Future<
-                ({
-                  List<_i2.DailyPictureModel>? dailyPictures,
-                  _i2.LocalRequestResult resultType
-                })>.value((
-              dailyPictures: null,
-              resultType: _i2.LocalRequestResult.errorRetrieving
-            )),
-          ) as _i3.Future<
-              ({
-                List<_i2.DailyPictureModel>? dailyPictures,
-                _i2.LocalRequestResult resultType
-              })>);
-
-  @override
-  _i3.Future<_i2.LocalRequestResult> saveDailyPictures(
-          List<_i2.DailyPictureModel>? dailyPictures) =>
+  _i5.Future<_i2.Response<dynamic>> get(
+    String? url, {
+    Map<String, dynamic>? queryParameters,
+  }) =>
       (super.noSuchMethod(
         Invocation.method(
-          #saveDailyPictures,
-          [dailyPictures],
+          #get,
+          [url],
+          {#queryParameters: queryParameters},
         ),
-        returnValue: _i3.Future<_i2.LocalRequestResult>.value(
-            _i2.LocalRequestResult.errorRetrieving),
-      ) as _i3.Future<_i2.LocalRequestResult>);
+        returnValue:
+            _i5.Future<_i2.Response<dynamic>>.value(_FakeResponse_0<dynamic>(
+          this,
+          Invocation.method(
+            #get,
+            [url],
+            {#queryParameters: queryParameters},
+          ),
+        )),
+      ) as _i5.Future<_i2.Response<dynamic>>);
 
   @override
-  _i3.Future<_i2.LocalRequestResult> saveSinglePicture(
-          _i2.DailyPictureModel? picture) =>
+  _i5.Future<_i2.Response<dynamic>> post(
+    String? url, {
+    Map<String, dynamic>? data,
+  }) =>
       (super.noSuchMethod(
         Invocation.method(
-          #saveSinglePicture,
-          [picture],
+          #post,
+          [url],
+          {#data: data},
         ),
-        returnValue: _i3.Future<_i2.LocalRequestResult>.value(
-            _i2.LocalRequestResult.errorRetrieving),
-      ) as _i3.Future<_i2.LocalRequestResult>);
+        returnValue:
+            _i5.Future<_i2.Response<dynamic>>.value(_FakeResponse_0<dynamic>(
+          this,
+          Invocation.method(
+            #post,
+            [url],
+            {#data: data},
+          ),
+        )),
+      ) as _i5.Future<_i2.Response<dynamic>>);
+
+  @override
+  _i5.Future<_i2.Response<dynamic>> put(
+    String? url, {
+    Map<String, dynamic>? data,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #put,
+          [url],
+          {#data: data},
+        ),
+        returnValue:
+            _i5.Future<_i2.Response<dynamic>>.value(_FakeResponse_0<dynamic>(
+          this,
+          Invocation.method(
+            #put,
+            [url],
+            {#data: data},
+          ),
+        )),
+      ) as _i5.Future<_i2.Response<dynamic>>);
+
+  @override
+  _i5.Future<_i2.Response<dynamic>> delete(
+    String? url, {
+    Map<String, dynamic>? data,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #delete,
+          [url],
+          {#data: data},
+        ),
+        returnValue:
+            _i5.Future<_i2.Response<dynamic>>.value(_FakeResponse_0<dynamic>(
+          this,
+          Invocation.method(
+            #delete,
+            [url],
+            {#data: data},
+          ),
+        )),
+      ) as _i5.Future<_i2.Response<dynamic>>);
+}
+
+/// A class which mocks [DefaultLogger].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockDefaultLogger extends _i1.Mock implements _i6.DefaultLogger {
+  MockDefaultLogger() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  _i3.Logger get logger => (super.noSuchMethod(
+        Invocation.getter(#logger),
+        returnValue: _FakeLogger_1(
+          this,
+          Invocation.getter(#logger),
+        ),
+      ) as _i3.Logger);
+
+  @override
+  void error(String? message) => super.noSuchMethod(
+        Invocation.method(
+          #error,
+          [message],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void info(String? message) => super.noSuchMethod(
+        Invocation.method(
+          #info,
+          [message],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void waning(String? message) => super.noSuchMethod(
+        Invocation.method(
+          #waning,
+          [message],
+        ),
+        returnValueForMissingStub: null,
+      );
 }
